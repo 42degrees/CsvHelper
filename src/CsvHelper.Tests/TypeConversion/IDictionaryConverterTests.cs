@@ -56,6 +56,7 @@ namespace CsvHelper.Tests.TypeConversion
 				writer.Flush();
 				stream.Position = 0;
 
+				csv.Configuration.HeaderValidated = null;
 				csv.Configuration.RegisterClassMap<TestIndexMap>();
 				var records = csv.GetRecords<Test>().ToList();
 
@@ -87,7 +88,7 @@ namespace CsvHelper.Tests.TypeConversion
 					var records = csv.GetRecords<Test>().ToList();
 					Assert.Fail();
 				}
-				catch( CsvReaderException )
+				catch( ReaderException )
 				{
 					// You can't read into a dictionary without a header.
 					// You need to header value to use as the key.
@@ -108,6 +109,7 @@ namespace CsvHelper.Tests.TypeConversion
 				writer.Flush();
 				stream.Position = 0;
 
+				csv.Configuration.HeaderValidated = null;
 				csv.Configuration.HasHeaderRecord = true;
 				csv.Configuration.RegisterClassMap<TestIndexMap>();
 				var records = csv.GetRecords<Test>().ToList();
@@ -141,7 +143,7 @@ namespace CsvHelper.Tests.TypeConversion
 					var records = csv.GetRecords<Test>().ToList();
 					Assert.Fail();
 				}
-				catch( CsvReaderException )
+				catch( ReaderException )
 				{
 					// Can't have same name with Dictionary.
 				}
@@ -161,6 +163,7 @@ namespace CsvHelper.Tests.TypeConversion
 				writer.Flush();
 				stream.Position = 0;
 
+				csv.Configuration.HeaderValidated = null;
 				csv.Configuration.HasHeaderRecord = true;
 				csv.Configuration.RegisterClassMap<TestDefaultMap>();
 				try
@@ -168,7 +171,7 @@ namespace CsvHelper.Tests.TypeConversion
 					var records = csv.GetRecords<Test>().ToList();
 					Assert.Fail();
 				}
-				catch( CsvReaderException )
+				catch( ReaderException )
 				{
 					// Indexes must be specified for dictionaries.
 				}
@@ -195,7 +198,7 @@ namespace CsvHelper.Tests.TypeConversion
 					var records = csv.GetRecords<Test>().ToList();
 					Assert.Fail();
 				}
-				catch( CsvReaderException )
+				catch( ReaderException )
 				{
 					// Headers can't have the same name.
 				}
@@ -222,7 +225,7 @@ namespace CsvHelper.Tests.TypeConversion
 					var records = csv.GetRecords<Test>().ToList();
 					Assert.Fail();
 				}
-				catch( CsvReaderException )
+				catch( ReaderException )
 				{
 					// Header's can't have the same name.
 				}
@@ -249,35 +252,10 @@ namespace CsvHelper.Tests.TypeConversion
 					var records = csv.GetRecords<Test>().ToList();
 					Assert.Fail();
 				}
-				catch( CsvReaderException )
+				catch( ReaderException )
 				{
 					// Header's can't have the same name.
 				}
-			}
-		}
-
-		[TestMethod]
-		public void ReadNullValuesIndexTest()
-		{
-			using( var stream = new MemoryStream() )
-			using( var reader = new StreamReader( stream ) )
-			using( var writer = new StreamWriter( stream ) )
-			using( var csv = new CsvReader( reader ) )
-			{
-				writer.WriteLine( "Before,D1,D2,D3,After" );
-				writer.WriteLine( "1,null,NULL,4,5" );
-				writer.Flush();
-				stream.Position = 0;
-
-				csv.Configuration.HasHeaderRecord = true;
-				csv.Configuration.RegisterClassMap<TestIndexMap>();
-				var records = csv.GetRecords<Test>().ToList();
-				var list = records[0].Dictionary;
-
-				Assert.AreEqual( 3, list.Count );
-				Assert.AreEqual( null, list["D1"] );
-				Assert.AreEqual( null, list["D2"] );
-				Assert.AreEqual( "4", list["D3"] );
 			}
 		}
 
@@ -288,7 +266,7 @@ namespace CsvHelper.Tests.TypeConversion
 			public string After { get; set; }
 		}
 
-		private sealed class TestIndexMap : CsvClassMap<Test>
+		private sealed class TestIndexMap : ClassMap<Test>
 		{
 			public TestIndexMap()
 			{
@@ -298,7 +276,7 @@ namespace CsvHelper.Tests.TypeConversion
 			}
 		}
 
-		private sealed class TestNamedMap : CsvClassMap<Test>
+		private sealed class TestNamedMap : ClassMap<Test>
 		{
 			public TestNamedMap()
 			{
@@ -308,7 +286,7 @@ namespace CsvHelper.Tests.TypeConversion
 			}
 		}
 
-		private sealed class TestDefaultMap : CsvClassMap<Test>
+		private sealed class TestDefaultMap : ClassMap<Test>
 		{
 			public TestDefaultMap()
 			{

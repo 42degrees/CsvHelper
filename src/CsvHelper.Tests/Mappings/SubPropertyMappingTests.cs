@@ -75,6 +75,20 @@ namespace CsvHelper.Tests.Mappings
 			}
 		}
 
+		[TestMethod]
+		public void ChangeMemberMapTest()
+		{
+			var config = new CsvHelper.Configuration.Configuration();
+			var map = config.AutoMap<A>();
+			map.Map( m => m.B.C.P3 ).Index( 3 );
+		}
+
+		[TestMethod]
+		public void AutoMapInClassMapTest()
+		{
+			var map = new AAutoMap();
+		}
+
 		private class A
 		{
 			public string P1 { get; set; }
@@ -92,13 +106,22 @@ namespace CsvHelper.Tests.Mappings
 			public string P3 { get; set; }
 		}
 
-		private sealed class AMap : CsvClassMap<A>
+		private sealed class AMap : ClassMap<A>
 		{
 			public AMap()
 			{
 				Map( m => m.B.C.P3 ).Index( 0 );
 				Map( m => m.P1 ).Index( 1 );
 				Map( m => m.B.P2 ).Index( 2 );
+			}
+		}
+
+		private sealed class AAutoMap : ClassMap<A>
+		{
+			public AAutoMap()
+			{
+				AutoMap();
+				Map( m => m.B.C.P3 ).Index( 3 );
 			}
 		}
 	}

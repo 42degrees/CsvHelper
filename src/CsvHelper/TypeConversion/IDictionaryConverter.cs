@@ -18,15 +18,15 @@ namespace CsvHelper.TypeConversion
 		/// Converts the object to a string.
 		/// </summary>
 		/// <param name="value">The object to convert to a string.</param>
-		/// <param name="row">The <see cref="ICsvWriterRow"/> for the current record.</param>
-		/// <param name="propertyMapData">The <see cref="CsvPropertyMapData"/> for the property/field being written.</param>
+		/// <param name="row">The <see cref="IWriterRow"/> for the current record.</param>
+		/// <param name="memberMapData">The <see cref="MemberMapData"/> for the member being written.</param>
 		/// <returns>The string representation of the object.</returns>
-		public override string ConvertToString( object value, ICsvWriterRow row, CsvPropertyMapData propertyMapData )
+		public override string ConvertToString( object value, IWriterRow row, MemberMapData memberMapData )
 		{
 			var dictionary = value as IDictionary;
 			if( dictionary == null )
 			{
-				return base.ConvertToString( value, row, propertyMapData );
+				return base.ConvertToString( value, row, memberMapData );
 			}
 
 			foreach( DictionaryEntry entry in dictionary )
@@ -41,23 +41,23 @@ namespace CsvHelper.TypeConversion
 		/// Converts the string to an object.
 		/// </summary>
 		/// <param name="text">The string to convert to an object.</param>
-		/// <param name="row">The <see cref="ICsvReaderRow"/> for the current record.</param>
-		/// <param name="propertyMapData">The <see cref="CsvPropertyMapData"/> for the property/field being created.</param>
+		/// <param name="row">The <see cref="IReaderRow"/> for the current record.</param>
+		/// <param name="memberMapData">The <see cref="MemberMapData"/> for the member being created.</param>
 		/// <returns>The object created from the string.</returns>
-		public override object ConvertFromString( string text, ICsvReaderRow row, CsvPropertyMapData propertyMapData )
+		public override object ConvertFromString( string text, IReaderRow row, MemberMapData memberMapData )
 		{
 			var dictionary = new Dictionary<string, string>();
 
-			var indexEnd = propertyMapData.IndexEnd < propertyMapData.Index
-				? row.CurrentRecord.Length - 1
-				: propertyMapData.IndexEnd;
+			var indexEnd = memberMapData.IndexEnd < memberMapData.Index
+				? row.Context.Record.Length - 1
+				: memberMapData.IndexEnd;
 
-			for( var i = propertyMapData.Index; i <= indexEnd; i++ )
+			for( var i = memberMapData.Index; i <= indexEnd; i++ )
 			{
 				string field;
 				if( row.TryGetField( i, out field ) )
 				{
-					dictionary.Add( row.FieldHeaders[i], field );
+					dictionary.Add( row.Context.HeaderRecord[i], field );
 				}
 			}
 

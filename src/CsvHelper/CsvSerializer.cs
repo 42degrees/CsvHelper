@@ -5,72 +5,60 @@
 using System;
 using System.IO;
 using CsvHelper.Configuration;
+using System.Threading.Tasks;
+using System.Linq;
 
 namespace CsvHelper
 {
 	/// <summary>
 	/// Defines methods used to serialize data into a CSV file.
 	/// </summary>
-	public class CsvSerializer : ICsvSerializer
+	public class CsvSerializer : ISerializer
 	{
-		private readonly bool leaveOpen;
+		private WritingContext context;
 		private bool disposed;
-		private readonly ICsvSerializerConfiguration configuration;
-		private TextWriter writer;
 
 		/// <summary>
-		/// Gets the <see cref="ICsvSerializer.TextWriter"/>.
+		/// Gets the writing context.
 		/// </summary>
-		public virtual TextWriter TextWriter => writer;
+		public virtual WritingContext Context => context;
 
 		/// <summary>
 		/// Gets the configuration.
 		/// </summary>
-		public virtual ICsvSerializerConfiguration Configuration => configuration;
+		public virtual ISerializerConfiguration Configuration => context.SerializerConfiguration;
 
 		/// <summary>
 		/// Creates a new serializer using the given <see cref="TextWriter"/>.
 		/// </summary>
 		/// <param name="writer">The <see cref="TextWriter"/> to write the CSV file data to.</param>
-		public CsvSerializer( TextWriter writer ) : this( writer, new CsvConfiguration(), false ) { }
+		public CsvSerializer( TextWriter writer ) : this( writer, new Configuration.Configuration(), false ) { }
 
 		/// <summary>
 		/// Creates a new serializer using the given <see cref="TextWriter"/>.
 		/// </summary>
 		/// <param name="writer">The <see cref="TextWriter"/> to write the CSV file data to.</param>
 		/// <param name="leaveOpen">true to leave the reader open after the CsvReader object is disposed, otherwise false.</param>
-		public CsvSerializer( TextWriter writer, bool leaveOpen ) : this( writer, new CsvConfiguration(), leaveOpen ) { }
+		public CsvSerializer( TextWriter writer, bool leaveOpen ) : this( writer, new Configuration.Configuration(), leaveOpen ) { }
 
 		/// <summary>
 		/// Creates a new serializer using the given <see cref="TextWriter"/>
-		/// and <see cref="CsvConfiguration"/>.
+		/// and <see cref="CsvHelper.Configuration.Configuration"/>.
 		/// </summary>
 		/// <param name="writer">The <see cref="TextWriter"/> to write the CSV file data to.</param>
 		/// <param name="configuration">The configuration.</param>
-		public CsvSerializer( TextWriter writer, ICsvSerializerConfiguration configuration ) : this( writer, configuration, false ) { }
+		public CsvSerializer( TextWriter writer, Configuration.Configuration configuration ) : this( writer, configuration, false ) { }
 
 		/// <summary>
 		/// Creates a new serializer using the given <see cref="TextWriter"/>
-		/// and <see cref="CsvConfiguration"/>.
+		/// and <see cref="CsvHelper.Configuration.Configuration"/>.
 		/// </summary>
 		/// <param name="writer">The <see cref="TextWriter"/> to write the CSV file data to.</param>
 		/// <param name="configuration">The configuration.</param>
 		/// <param name="leaveOpen">true to leave the reader open after the CsvReader object is disposed, otherwise false.</param>
-		public CsvSerializer( TextWriter writer, ICsvSerializerConfiguration configuration, bool leaveOpen )
+		public CsvSerializer( TextWriter writer, Configuration.Configuration configuration, bool leaveOpen )
 		{
-			if( writer == null )
-			{
-				throw new ArgumentNullException( nameof( writer ) );
-			}
-
-			if( configuration == null )
-			{
-				throw new ArgumentNullException( nameof( configuration ) );
-			}
-
-			this.writer = writer;
-			this.configuration = configuration;
-			this.leaveOpen = leaveOpen;
+			context = new WritingContext( writer, configuration, leaveOpen );
 		}
 
 		/// <summary>
@@ -79,17 +67,56 @@ namespace CsvHelper
 		/// <param name="record">The record to write.</param>
 		public virtual void Write( string[] record )
 		{
+			// Don't forget about the async method below!
+
 			for( var i = 0; i < record.Length; i++ )
 			{
 				if( i > 0 )
 				{
-					writer.Write( configuration.Delimiter );
+					context.Writer.Write( context.SerializerConfiguration.Delimiter );
 				}
 
-				writer.Write( record[i] );
-			}
+				var field = Configuration.SanitizeForInjection
+					? SanitizeForInjection( record[i] )
+					: record[i];
 
-			writer.WriteLine();
+				context.Writer.Write( field );
+			}
+		}
+
+		/// <summary>
+		/// Writes a record to the CSV file.
+		/// </summary>
+		/// <param name="record">The record to write.</param>
+		public virtual async Task WriteAsync( string[] record )
+		{
+			for( var i = 0; i < record.Length; i++ )
+			{
+				if( i > 0 )
+				{
+					await context.Writer.WriteAsync( context.SerializerConfiguration.Delimiter ).ConfigureAwait(false);
+				}
+
+				await context.Writer.WriteAsync( record[i] ).ConfigureAwait(false);
+			}
+		}
+		
+		/// <summary>
+		/// Writes a new line to the CSV file.
+		/// </summary>
+		public virtual void WriteLine()
+		{
+			// Don't forget about the async method below!
+
+			context.Writer.WriteLine();
+		}
+
+		/// <summary>
+		/// Writes a new line to the CSV file.
+		/// </summary>
+		public virtual async Task WriteLineAsync()
+		{
+			await context.Writer.WriteLineAsync().ConfigureAwait(false);
 		}
 
 		/// <summary>
@@ -98,7 +125,7 @@ namespace CsvHelper
 		/// <filterpriority>2</filterpriority>
 		public virtual void Dispose()
 		{
-			Dispose( !leaveOpen );
+			Dispose( !context.LeaveOpen );
 			GC.SuppressFinalize( this );
 		}
 
@@ -115,11 +142,35 @@ namespace CsvHelper
 
 			if( disposing )
 			{
-				writer?.Dispose();
+				context.Dispose();
 			}
 
+			context = null;
 			disposed = true;
-			writer = null;
+		}
+
+		/// <summary>
+		/// Sanitizes the field to prevent injection.
+		/// </summary>
+		/// <param name="field">The field to sanitize.</param>
+		protected virtual string SanitizeForInjection( string field )
+		{
+			if( string.IsNullOrEmpty( field ) )
+			{
+				return field;
+			}
+
+			if( Configuration.InjectionCharacters.Contains( field[0] ) )
+			{
+				return Configuration.InjectionEscapeCharacter + field;
+			}
+
+			if( field[0] == Configuration.Quote && Configuration.InjectionCharacters.Contains( field[1] ) )
+			{
+				return field[0].ToString() + Configuration.InjectionEscapeCharacter.ToString() + field.Substring( 1 );
+			}
+
+			return field;
 		}
 	}
 }

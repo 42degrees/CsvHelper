@@ -99,12 +99,12 @@ namespace CsvHelper.Tests.Defaults
 			public B B { get; set; }
 		}
 
-		private sealed class AMap : CsvClassMap<A>
+		private sealed class AMap : ClassMap<A>
 		{
 			public AMap()
 			{
+				AutoMap();
 				Map( m => m.AId ).Default( 1 );
-				References<BMap>( m => m.B );
 			}
 		}
 
@@ -112,14 +112,6 @@ namespace CsvHelper.Tests.Defaults
 		{
 			public int BId { get; set; }
 			public int CId { get; set; }
-		}
-
-		public sealed class BMap : CsvClassMap<B>
-		{
-			public BMap()
-			{
-				AutoMap();
-			}
 		}
 	}
 }

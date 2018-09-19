@@ -22,13 +22,17 @@ namespace CsvHelper.Tests.TypeConversion
 		[TestMethod]
 		public void ConvertNoIndexEndTest()
 		{
-			var config = new CsvConfiguration { HasHeaderRecord = false };
-			var rowMock = new Mock<ICsvReaderRow>();
+			var config = new CsvHelper.Configuration.Configuration { HasHeaderRecord = false };
 			var currentRecord = new[] { "1", "one", "1", "2", "3" };
+			var rowMock = new Mock<IReaderRow>();
+			var context = new ReadingContext( new StringReader( string.Empty ), config, false )
+			{
+				Record = currentRecord
+			};
 			rowMock.Setup( m => m.Configuration ).Returns( config );
-			rowMock.Setup( m => m.CurrentRecord ).Returns( currentRecord );
+			rowMock.Setup( m => m.Context ).Returns( context );
 			rowMock.Setup( m => m.GetField( It.IsAny<Type>(), It.IsAny<int>() ) ).Returns<Type, int>( ( type, index ) => Convert.ToInt32( currentRecord[index] ) );
-			var data = new CsvPropertyMapData( typeof( Test ).GetTypeInfo().GetProperty( "List" ) )
+			var data = new MemberMapData( typeof( Test ).GetTypeInfo().GetProperty( "List" ) )
 			{
 				Index = 2
 			};
@@ -47,13 +51,17 @@ namespace CsvHelper.Tests.TypeConversion
 		[TestMethod]
 		public void ConvertWithIndexEndTest()
 		{
-			var config = new CsvConfiguration { HasHeaderRecord = false };
-			var rowMock = new Mock<ICsvReaderRow>();
+			var config = new CsvHelper.Configuration.Configuration { HasHeaderRecord = false };
+			var rowMock = new Mock<IReaderRow>();
 			var currentRecord = new[] { "1", "one", "1", "2", "3" };
+			var context = new ReadingContext( new StringReader( string.Empty ), config, false )
+			{
+				Record = currentRecord
+			};
 			rowMock.Setup( m => m.Configuration ).Returns( config );
-			rowMock.Setup( m => m.CurrentRecord ).Returns( currentRecord );
+			rowMock.Setup( m => m.Context ).Returns( context );
 			rowMock.Setup( m => m.GetField( It.IsAny<Type>(), It.IsAny<int>() ) ).Returns<Type, int>( ( type, index ) => Convert.ToInt32( currentRecord[index] ) );
-			var data = new CsvPropertyMapData( typeof( Test ).GetProperty( "List" ) )
+			var data = new MemberMapData( typeof( Test ).GetProperty( "List" ) )
 			{
 				Index = 2,
 				IndexEnd = 3
@@ -211,6 +219,7 @@ namespace CsvHelper.Tests.TypeConversion
 					new Test { List = new List<int?> { 1, 2, 3 } }
 				};
 				csv.Configuration.HasHeaderRecord = false;
+				csv.Configuration.RegisterClassMap<TestIndexMap>();
 				csv.WriteRecords( list );
 				writer.Flush();
 				stream.Position = 0;
@@ -247,57 +256,6 @@ namespace CsvHelper.Tests.TypeConversion
 			}
 		}
 
-		[TestMethod]
-		public void ReadNullValuesNameTest()
-		{
-			using( var stream = new MemoryStream() )
-			using( var reader = new StreamReader( stream ) )
-			using( var writer = new StreamWriter( stream ) )
-			using( var csv = new CsvReader( reader ) )
-			{
-				writer.WriteLine( "Before,List,List,List,After" );
-				writer.WriteLine( "1,null,NULL,4,5" );
-				writer.Flush();
-				stream.Position = 0;
-
-				csv.Configuration.HasHeaderRecord = true;
-				csv.Configuration.RegisterClassMap<TestNamedMap>();
-				var records = csv.GetRecords<Test>().ToList();
-
-				var list = records[0].List.ToList();
-
-				Assert.AreEqual( 3, list.Count );
-				Assert.AreEqual( null, list[0] );
-				Assert.AreEqual( null, list[1] );
-				Assert.AreEqual( 4, list[2] );
-			}
-		}
-
-		[TestMethod]
-		public void ReadNullValuesIndexTest()
-		{
-			using( var stream = new MemoryStream() )
-			using( var reader = new StreamReader( stream ) )
-			using( var writer = new StreamWriter( stream ) )
-			using( var csv = new CsvReader( reader ) )
-			{
-				writer.WriteLine( "1,null,NULL,4,5" );
-				writer.Flush();
-				stream.Position = 0;
-
-				csv.Configuration.HasHeaderRecord = false;
-				csv.Configuration.RegisterClassMap<TestIndexMap>();
-				var records = csv.GetRecords<Test>().ToList();
-
-				var list = records[0].List.ToList();
-
-				Assert.AreEqual( 3, list.Count );
-				Assert.AreEqual( null, list[0] );
-				Assert.AreEqual( null, list[1] );
-				Assert.AreEqual( 4, list[2] );
-			}
-		}
-
 		private class Test
 		{
 			public string Before { get; set; }
@@ -305,7 +263,7 @@ namespace CsvHelper.Tests.TypeConversion
 			public string After { get; set; }
 		}
 
-		private sealed class TestIndexMap : CsvClassMap<Test>
+		private sealed class TestIndexMap : ClassMap<Test>
 		{
 			public TestIndexMap()
 			{
@@ -315,7 +273,7 @@ namespace CsvHelper.Tests.TypeConversion
 			}
 		}
 
-		private sealed class TestNamedMap : CsvClassMap<Test>
+		private sealed class TestNamedMap : ClassMap<Test>
 		{
 			public TestNamedMap()
 			{
@@ -325,7 +283,7 @@ namespace CsvHelper.Tests.TypeConversion
 			}
 		}
 
-		private sealed class TestDefaultMap : CsvClassMap<Test>
+		private sealed class TestDefaultMap : ClassMap<Test>
 		{
 			public TestDefaultMap()
 			{

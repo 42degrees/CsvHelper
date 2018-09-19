@@ -38,7 +38,7 @@ namespace CsvHelper.Tests
 				Assert.AreEqual( null, record.Name );
 
 				stream.Position = 0;
-				csv.ClearRecordCache<Test>();
+				csv.Context.ClearCache( Caches.ReadRecord );
 
 				csv.Configuration.RegisterClassMap<TestMap2>();
 				csv.Read();
@@ -63,7 +63,7 @@ namespace CsvHelper.Tests
 				csv.WriteRecord( record );
 			    csv.NextRecord();
 
-				csv.ClearRecordCache<Test>();
+				csv.Context.ClearCache( Caches.WriteRecord );
 				csv.Configuration.RegisterClassMap<TestMap2>();
 				record = new Test { Id = 2, Name = "two" };
 				csv.WriteRecord( record );
@@ -89,7 +89,7 @@ namespace CsvHelper.Tests
 			public string Name { get; set; }
 		}
 
-		private sealed class TestMap1 : CsvClassMap<Test>
+		private sealed class TestMap1 : ClassMap<Test>
 		{
 			public TestMap1()
 			{
@@ -97,7 +97,7 @@ namespace CsvHelper.Tests
 			}
 		}
 
-		private sealed class TestMap2 : CsvClassMap<Test>
+		private sealed class TestMap2 : ClassMap<Test>
 		{
 			public TestMap2()
 			{

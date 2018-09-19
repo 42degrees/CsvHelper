@@ -7,6 +7,7 @@ using System.Globalization;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace CsvHelper.Tests.TypeConversion
 {
@@ -17,7 +18,7 @@ namespace CsvHelper.Tests.TypeConversion
 		public void ConvertToStringTest()
 		{
 			var converter = new ByteConverter();
-			var propertyMapData = new CsvPropertyMapData( null )
+			var propertyMapData = new MemberMapData( null )
 			{
 				TypeConverter = converter,
 				TypeConverterOptions = { CultureInfo = CultureInfo.CurrentCulture }
@@ -33,18 +34,20 @@ namespace CsvHelper.Tests.TypeConversion
 		{
 			var converter = new ByteConverter();
 
-			var propertyMapData = new CsvPropertyMapData( null );
+			var propertyMapData = new MemberMapData( null );
 			propertyMapData.TypeConverterOptions.CultureInfo = CultureInfo.CurrentCulture;
+
+			var mockRow = new Mock<IReaderRow>();
 
 			Assert.AreEqual( (byte)123, converter.ConvertFromString( "123", null, propertyMapData ) );
 			Assert.AreEqual( (byte)123, converter.ConvertFromString( " 123 ", null, propertyMapData ) );
 
 			try
 			{
-				converter.ConvertFromString( null, null, propertyMapData );
+				converter.ConvertFromString( null, mockRow.Object, propertyMapData );
 				Assert.Fail();
 			}
-			catch( CsvTypeConverterException )
+			catch( TypeConverterException )
 			{
 			}
 		}

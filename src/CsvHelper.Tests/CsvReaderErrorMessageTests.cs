@@ -43,10 +43,10 @@ namespace CsvHelper.Tests
                     var records = csvReader.GetRecords<Test1>().ToList();
                     throw new Exception();
                 }
-                catch (CsvTypeConverterException ex)
+                catch (TypeConverterException ex)
                 {
-	                Assert.AreEqual( 1, ex.Row );
-	                Assert.AreEqual( 0, ex.FieldIndex );
+	                Assert.AreEqual( 1, ex.ReadingContext.Row );
+	                Assert.AreEqual( 0, ex.ReadingContext.CurrentIndex );
                 }
             }
         }
@@ -72,10 +72,10 @@ namespace CsvHelper.Tests
                     var records = csvReader.GetRecords<Test1>().ToList();
                     throw new Exception();
                 }
-                catch (CsvTypeConverterException ex)
+                catch (TypeConverterException ex)
                 {
-	                Assert.AreEqual( 3, ex.Row );
-	                Assert.AreEqual( 0, ex.FieldIndex );
+	                Assert.AreEqual( 3, ex.ReadingContext.Row );
+	                Assert.AreEqual( 0, ex.ReadingContext.CurrentIndex );
                 }
             }
         }
@@ -103,10 +103,10 @@ namespace CsvHelper.Tests
 		            var records = csvReader.GetRecords<Test1>().ToList();
 		            throw new Exception();
 	            }
-	            catch( CsvTypeConverterException ex )
+	            catch( TypeConverterException ex )
 	            {
-		            Assert.AreEqual( 4, ex.Row );
-		            Assert.AreEqual( 0, ex.FieldIndex );
+		            Assert.AreEqual( 4, ex.ReadingContext.Row );
+		            Assert.AreEqual( 0, ex.ReadingContext.CurrentIndex );
 	            }
             }
         }
@@ -132,10 +132,10 @@ namespace CsvHelper.Tests
                     var records = csvReader.GetRecords<Test1>().ToList();
                     throw new Exception();
                 }
-                catch (CsvTypeConverterException ex)
+                catch (TypeConverterException ex)
                 {
-					Assert.AreEqual( 3, ex.Row );
-					Assert.AreEqual( 0, ex.FieldIndex );
+					Assert.AreEqual( 3, ex.ReadingContext.Row );
+					Assert.AreEqual( 0, ex.ReadingContext.CurrentIndex );
 				}
 			}
         }
@@ -160,10 +160,10 @@ namespace CsvHelper.Tests
                     var records = csvReader.GetRecords<Test2>().ToList();
                     throw new Exception();
                 }
-                catch (CsvTypeConverterException ex)
+                catch (TypeConverterException ex)
                 {
-					Assert.AreEqual( 2, ex.Row );
-					Assert.AreEqual( 1, ex.FieldIndex );
+					Assert.AreEqual( 2, ex.ReadingContext.Row );
+					Assert.AreEqual( 1, ex.ReadingContext.CurrentIndex );
 				}
 			}
         }
@@ -186,7 +186,7 @@ namespace CsvHelper.Tests
                     csvReader.Configuration.RegisterClassMap<Test3Map>();
                     var records = csvReader.GetRecords<Test3>().ToList();
                 }
-                catch (CsvReaderException)
+                catch (ReaderException)
                 {
                     // Should throw this exception.
                 }
@@ -200,7 +200,7 @@ namespace CsvHelper.Tests
             public string StringColumn { get; set; }
         }
 
-        private sealed class Test1Map : CsvClassMap<Test1>
+        private sealed class Test1Map : ClassMap<Test1>
         {
             public Test1Map()
             {
@@ -216,7 +216,7 @@ namespace CsvHelper.Tests
             public int IntColumn { get; set; }
         }
 
-        private sealed class Test2Map : CsvClassMap<Test2>
+        private sealed class Test2Map : ClassMap<Test2>
         {
             public Test2Map()
             {
@@ -234,7 +234,7 @@ namespace CsvHelper.Tests
             public string Description { get; set; }
         }
 
-        private sealed class Test3Map : CsvClassMap<Test3>
+        private sealed class Test3Map : ClassMap<Test3>
         {
             public Test3Map()
             {

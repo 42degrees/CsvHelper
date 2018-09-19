@@ -303,7 +303,7 @@ namespace CsvHelper.Tests.Mappings
 			public string NameProp { get; set; }
 		}
 
-		private sealed class APublicMap : CsvClassMap<APublic>
+		private sealed class APublicMap : ClassMap<APublic>
 		{
 			public APublicMap()
 			{
@@ -312,7 +312,7 @@ namespace CsvHelper.Tests.Mappings
 			}
 		}
 
-		private sealed class BPublicMap : CsvClassMap<BPublic>
+		private sealed class BPublicMap : ClassMap<BPublic>
 		{
 			public BPublicMap()
 			{
@@ -364,16 +364,16 @@ namespace CsvHelper.Tests.Mappings
 			}
 		}
 
-		private sealed class APrivateMap : CsvClassMap<APrivate>
+		private sealed class APrivateMap : ClassMap<APrivate>
 		{
 			public APrivateMap()
 			{
-				var options = new AutoMapOptions
+				var config = new CsvHelper.Configuration.Configuration
 				{
-					IncludePrivateProperties = true,
+					IncludePrivateMembers = true,
 					MemberTypes = MemberTypes.Fields
 				};
-				AutoMap( options );
+				AutoMap( config );
 			}
 		}
 	}

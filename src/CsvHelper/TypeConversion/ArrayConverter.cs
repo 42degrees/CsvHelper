@@ -19,15 +19,15 @@ namespace CsvHelper.TypeConversion
 		/// Converts the string to an object.
 		/// </summary>
 		/// <param name="text">The string to convert to an object.</param>
-		/// <param name="row">The <see cref="ICsvReaderRow"/> for the current record.</param>
-		/// <param name="propertyMapData">The <see cref="CsvPropertyMapData"/> for the property/field being created.</param>
+		/// <param name="row">The <see cref="IReaderRow"/> for the current record.</param>
+		/// <param name="memberMapData">The <see cref="MemberMapData"/> for the member being created.</param>
 		/// <returns>The object created from the string.</returns>
-		public override object ConvertFromString( string text, ICsvReaderRow row, CsvPropertyMapData propertyMapData )
+		public override object ConvertFromString( string text, IReaderRow row, MemberMapData memberMapData )
 		{
 			Array array;
-			var type = propertyMapData.Member.MemberType().GetElementType();
+			var type = memberMapData.Member.MemberType().GetElementType();
 
-			if( propertyMapData.IsNameSet || row.Configuration.HasHeaderRecord && !propertyMapData.IsIndexSet )
+			if( memberMapData.IsNameSet || row.Configuration.HasHeaderRecord && !memberMapData.IsIndexSet )
 			{
 				// Use the name.
 				var list = new List<object>();
@@ -35,7 +35,7 @@ namespace CsvHelper.TypeConversion
 				while( true )
 				{
 					object field;
-					if( !row.TryGetField( type, propertyMapData.Names.FirstOrDefault(), nameIndex, out field ) )
+					if( !row.TryGetField( type, memberMapData.Names.FirstOrDefault(), nameIndex, out field ) )
 					{
 						break;
 					}
@@ -44,7 +44,7 @@ namespace CsvHelper.TypeConversion
 					nameIndex++;
 				}
 
-				array = (Array)ReflectionHelper.CreateInstance( propertyMapData.Member.MemberType(), list.Count );
+				array = (Array)ReflectionHelper.CreateInstance( memberMapData.Member.MemberType(), list.Count );
 				for( var i = 0; i < list.Count; i++ )
 				{
 					array.SetValue( list[i], i );
@@ -53,14 +53,14 @@ namespace CsvHelper.TypeConversion
 			else
 			{
 				// Use the index.
-				var indexEnd = propertyMapData.IndexEnd < propertyMapData.Index
-					? row.CurrentRecord.Length - 1
-					: propertyMapData.IndexEnd;
+				var indexEnd = memberMapData.IndexEnd < memberMapData.Index
+					? row.Context.Record.Length - 1
+					: memberMapData.IndexEnd;
 
-				var arraySize = indexEnd - propertyMapData.Index + 1;
-				array = (Array)ReflectionHelper.CreateInstance( propertyMapData.Member.MemberType(), arraySize );
+				var arraySize = indexEnd - memberMapData.Index + 1;
+				array = (Array)ReflectionHelper.CreateInstance( memberMapData.Member.MemberType(), arraySize );
 				var arrayIndex = 0;
-				for( var i = propertyMapData.Index; i <= indexEnd; i++ )
+				for( var i = memberMapData.Index; i <= indexEnd; i++ )
 				{
 					array.SetValue( row.GetField( type, i ), arrayIndex );
 					arrayIndex++;

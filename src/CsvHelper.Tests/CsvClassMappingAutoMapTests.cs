@@ -19,11 +19,11 @@ namespace CsvHelper.Tests
 		{
 			var aMap = new AMap();
 
-			Assert.AreEqual( 3, aMap.PropertyMaps.Count );
-			Assert.AreEqual( 0, aMap.PropertyMaps[0].Data.Index );
-			Assert.AreEqual( 1, aMap.PropertyMaps[1].Data.Index );
-			Assert.AreEqual( 2, aMap.PropertyMaps[2].Data.Index );
-			Assert.AreEqual( true, aMap.PropertyMaps[2].Data.Ignore );
+			Assert.AreEqual( 3, aMap.MemberMaps.Count );
+			Assert.AreEqual( 0, aMap.MemberMaps[0].Data.Index );
+			Assert.AreEqual( 1, aMap.MemberMaps[1].Data.Index );
+			Assert.AreEqual( 2, aMap.MemberMaps[2].Data.Index );
+			Assert.AreEqual( true, aMap.MemberMaps[2].Data.Ignore );
 
 			Assert.AreEqual( 1, aMap.ReferenceMaps.Count );
 		}
@@ -48,7 +48,7 @@ namespace CsvHelper.Tests
 			public int Six { get; set; }
 		}
 
-		private sealed class AMap : CsvClassMap<A>
+		private sealed class AMap : ClassMap<A>
 		{
 			public AMap()
 			{
@@ -57,7 +57,7 @@ namespace CsvHelper.Tests
 			}
 		}
 
-		private sealed class BMap : CsvClassMap<B>
+		private sealed class BMap : ClassMap<B>
 		{
 		}
 	}

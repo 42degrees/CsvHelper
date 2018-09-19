@@ -18,7 +18,7 @@ namespace CsvHelper.Tests.Mappings
 		public void Test()
 		{
 			var map = new AMap( "A Field" );
-			var name = map.ReferenceMaps[0].Data.Mapping.PropertyMaps.Find<B>( m => m.Name ).Data.Names[0];
+			var name = map.ReferenceMaps[0].Data.Mapping.MemberMaps.Find<B>( m => m.Name ).Data.Names[0];
 			Assert.AreEqual( "B Field", name );
 		}
 
@@ -34,7 +34,7 @@ namespace CsvHelper.Tests.Mappings
 			public string Name { get; set; }
 		}
 
-		private sealed class AMap : CsvClassMap<A>
+		private sealed class AMap : ClassMap<A>
 		{
 			public AMap( string name )
 			{
@@ -43,7 +43,7 @@ namespace CsvHelper.Tests.Mappings
 			}
 		}
 
-		private sealed class BMap : CsvClassMap<B>
+		private sealed class BMap : ClassMap<B>
 		{
 			public BMap( string name )
 			{

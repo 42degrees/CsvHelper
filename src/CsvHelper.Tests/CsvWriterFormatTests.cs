@@ -44,35 +44,6 @@ namespace CsvHelper.Tests
 		}
 
 	    [TestMethod]
-	    public void WriteFieldTrimTest()
-	    {
-		    var record = new TestRecord
-		    {
-			    IntColumn = 1,
-			    DateColumn = new DateTime( 2012, 10, 1, 12, 12, 12 ),
-			    DecimalColumn = 150.99m,
-			    FirstColumn = "first column ",
-		    };
-
-		    var config = new CsvConfiguration { CultureInfo = new CultureInfo( "en-US" ), TrimFields = true };
-		    config.RegisterClassMap<TestRecordMap>();
-
-		    var stream = new MemoryStream();
-		    var writer = new StreamWriter( stream ) { AutoFlush = true };
-		    var csv = new CsvWriter( writer, config );
-
-		    csv.WriteRecord( record );
-	        csv.NextRecord();
-
-		    stream.Position = 0;
-		    var reader = new StreamReader( stream );
-		    var csvFile = reader.ReadToEnd();
-		    var expected = "first column,0001,10/1/2012,$150.99\r\n";
-
-		    Assert.AreEqual( expected, csvFile );
-	    }
-
-	    [TestMethod]
 	    public void WriteFieldShouldQuoteNoTest()
 	    {
 		    var stream = new MemoryStream();
@@ -160,7 +131,7 @@ namespace CsvHelper.Tests
 			public string FirstColumn { get; set; }
 		}
 
-		private sealed class TestRecordMap : CsvClassMap<TestRecord>
+		private sealed class TestRecordMap : ClassMap<TestRecord>
 		{
 			public TestRecordMap()
 			{
@@ -195,7 +166,7 @@ namespace CsvHelper.Tests
 			public int Zip { get; set; }
 		}
 
-		private sealed class PersonMap : CsvClassMap<Person>
+		private sealed class PersonMap : ClassMap<Person>
 		{
 			public PersonMap()
 			{
@@ -207,7 +178,7 @@ namespace CsvHelper.Tests
 			}
 		}
 
-		private sealed class HomeAddressMap : CsvClassMap<Address>
+		private sealed class HomeAddressMap : ClassMap<Address>
 		{
 			public HomeAddressMap()
 			{
@@ -218,7 +189,7 @@ namespace CsvHelper.Tests
 			}
 		}
 
-		private sealed class WorkAddressMap : CsvClassMap<Address>
+		private sealed class WorkAddressMap : ClassMap<Address>
 		{
 			public WorkAddressMap()
 			{

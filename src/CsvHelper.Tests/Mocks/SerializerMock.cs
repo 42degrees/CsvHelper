@@ -7,27 +7,30 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
+using System.Threading.Tasks;
 using CsvHelper.Configuration;
 
 namespace CsvHelper.Tests.Mocks
 {
-	public class SerializerMock : ICsvSerializer
+	public class SerializerMock : ISerializer
 	{
 		private readonly List<string[]> records = new List<string[]>();
 		private readonly bool throwExceptionOnWrite;
 
 		public TextWriter TextWriter { get; }
 
-		public ICsvSerializerConfiguration Configuration { get; private set; }
+		public ISerializerConfiguration Configuration { get; }
 
 		public List<string[]> Records
 		{
 			get { return records; }
 		}
 
+		public WritingContext Context { get; }
+
 		public SerializerMock( bool throwExceptionOnWrite = false )
 		{
-			Configuration = new CsvConfiguration();
+			Context = new WritingContext( new StringWriter(), new CsvHelper.Configuration.Configuration(), false );
 			this.throwExceptionOnWrite = throwExceptionOnWrite;
 		}
 
@@ -41,8 +44,22 @@ namespace CsvHelper.Tests.Mocks
 			records.Add( record );
 		}
 
+		public void WriteLine()
+		{
+		}
+
 		public void Dispose()
 		{
+		}
+
+		public Task WriteAsync( string[] record )
+		{
+			throw new NotImplementedException();
+		}
+
+		public Task WriteLineAsync()
+		{
+			throw new NotImplementedException();
 		}
 	}
 }

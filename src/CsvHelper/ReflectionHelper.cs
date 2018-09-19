@@ -17,11 +17,11 @@ namespace CsvHelper
 	/// </summary>
 	internal static class ReflectionHelper
 	{
-		private static readonly Dictionary<int, Dictionary<string, Delegate>> funcArgCache = new Dictionary<int, Dictionary<string, Delegate>>();
+		private static readonly Dictionary<int, Dictionary<int, Delegate>> funcArgCache = new Dictionary<int, Dictionary<int, Delegate>>();
 		private static object locker = new object();
 
 		/// <summary>
-		/// Creates an instance of type T.
+		/// Creates an instance of type T using the current <see cref="IObjectResolver"/>.
 		/// </summary>
 		/// <typeparam name="T">The type of instance to create.</typeparam>
 		/// <param name="args">The constructor arguments.</param>
@@ -32,31 +32,46 @@ namespace CsvHelper
 		}
 
 		/// <summary>
-		/// Creates an instance of the specified type.
+		/// Creates an instance of the specified type using the current <see cref="IObjectResolver"/>.
 		/// </summary>
 		/// <param name="type">The type of instance to create.</param>
 		/// <param name="args">The constructor arguments.</param>
 		/// <returns>A new instance of the specified type.</returns>
 		public static object CreateInstance( Type type, params object[] args )
 		{
-			Dictionary<string, Delegate> funcCache;
+			return ObjectResolver.Current.Resolve( type, args );
+		}
+
+		/// <summary>
+		/// Creates an instance of the specified type without using the
+		/// current <see cref="IObjectResolver"/>.
+		/// </summary>
+		/// <param name="type">The type of instance to create.</param>
+		/// <param name="args">The constructor arguments.</param>
+		/// <returns>A new instance of the specified type.</returns>
+		public static object CreateInstanceWithoutContractResolver( Type type, params object[] args )
+		{
+			Dictionary<int, Delegate> funcCache;
 			lock( locker )
 			{
 				if( !funcArgCache.TryGetValue( args.Length, out funcCache ) )
 				{
-					funcArgCache[args.Length] = funcCache = new Dictionary<string, Delegate>();
+					funcArgCache[args.Length] = funcCache = new Dictionary<int, Delegate>();
 				}
 			}
 
 			var typeNames = new List<string>();
-			typeNames.Add( type.FullName );
-			typeNames.AddRange( args.Select( a => a.GetType().FullName ) );
-			var key = string.Join( "|", typeNames );
+			typeNames.Add( type.AssemblyQualifiedName );
+			typeNames.AddRange( args.Select( a => a.GetType().AssemblyQualifiedName ) );
+			var key = string.Join( "|", typeNames ).GetHashCode();
 
 			Delegate func;
-			if( !funcCache.TryGetValue( key, out func ) )
+			lock( locker )
 			{
-				funcCache[key] = func = CreateInstanceDelegate( type, args );
+				if( !funcCache.TryGetValue( key, out func ) )
+				{
+					funcCache[key] = func = CreateInstanceDelegate( type, args );
+				}
 			}
 
 			try
@@ -67,6 +82,23 @@ namespace CsvHelper
 			{
 				throw ex.InnerException;
 			}
+		}
+
+		/// <summary>
+		/// Gets the <see cref="PropertyInfo"/> from the type where the property was declared.
+		/// </summary>
+		/// <param name="type">The type the property belongs to.</param>
+		/// <param name="property">The property to search.</param>
+		/// <param name="flags">Flags for how the property is retrieved.</param>
+		public static PropertyInfo GetDeclaringProperty( Type type, PropertyInfo property, BindingFlags flags )
+		{
+			if( property.DeclaringType != type )
+			{
+				var declaringProperty = property.DeclaringType.GetProperty( property.Name, flags );
+				return GetDeclaringProperty( property.DeclaringType, declaringProperty, flags );
+			}
+
+			return property;
 		}
 
 		/// <summary>
@@ -91,11 +123,11 @@ namespace CsvHelper
 				return field;
 			}
 
-			throw new CsvConfigurationException( $"'{member.Name}' is not a property/field." );
+			throw new ConfigurationException( $"'{member.Name}' is not a member." );
 		}
 
 		/// <summary>
-		/// Gets the property/field inheritance chain as a stack.
+		/// Gets the member inheritance chain as a stack.
 		/// </summary>
 		/// <typeparam name="TModel">The type of the model.</typeparam>
 		/// <typeparam name="TProperty">The type of the property.</typeparam>
@@ -155,7 +187,7 @@ namespace CsvHelper
 			{
 				var argumentTypes = args.Select( a => a.GetType() ).ToArray();
 				var argumentExpressions = argumentTypes.Select( ( t, i ) => Expression.Parameter( t, "var" + i ) ).ToArray();
-				var constructorInfo = type.GetConstructor( argumentTypes );
+				var constructorInfo = type.GetConstructor( BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.Instance, null, argumentTypes, null );
 				if( constructorInfo == null )
 				{
 					throw new InvalidOperationException( "No public parameterless constructor found." );

@@ -10,6 +10,7 @@ using System.IO;
 using CsvHelper.Configuration;
 using CsvHelper.Tests.Mocks;
 using CsvHelper.TypeConversion;
+using Moq;
 
 namespace CsvHelper.Tests.TypeConversion
 {
@@ -21,23 +22,26 @@ namespace CsvHelper.Tests.TypeConversion
 		{
 			var converter = new EnumerableConverter();
 
-			var propertyMapData = new CsvPropertyMapData( null );
+			var propertyMapData = new MemberMapData( null );
 			propertyMapData.TypeConverterOptions.CultureInfo = CultureInfo.CurrentCulture;
+
+			var mockReaderRow = new Mock<IReaderRow>();
+			var mockWriterRow = new Mock<IWriterRow>();
 
 			try
 			{
-				converter.ConvertFromString( "", null, propertyMapData );
+				converter.ConvertFromString( "", mockReaderRow.Object, propertyMapData );
 				Assert.Fail();
 			}
-			catch( CsvTypeConverterException )
+			catch( TypeConverterException )
 			{
 			}
 			try
 			{
-				converter.ConvertToString( 5, null, propertyMapData );
+				converter.ConvertToString( 5, mockWriterRow.Object, propertyMapData );
 				Assert.Fail();
 			}
-			catch( CsvTypeConverterException )
+			catch( TypeConverterException )
 			{
 			}
 		}

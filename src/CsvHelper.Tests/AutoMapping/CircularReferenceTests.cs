@@ -7,24 +7,48 @@ namespace CsvHelper.Tests.AutoMapping
     public class CircularReferenceTests
     {
 		[TestMethod]
+		public void SelfCircularDependencyTest()
+		{
+			var config = new CsvHelper.Configuration.Configuration();
+			var map = config.AutoMap<SelfCircularA>();
+		}
+
+		[TestMethod]
 		public void CircularDependencyTest()
 		{
-			var config = new CsvConfiguration();
+			var config = new CsvHelper.Configuration.Configuration();
 			var map = config.AutoMap<ACircular>();
 			Assert.IsNotNull( map );
-			Assert.AreEqual( 1, map.PropertyMaps.Count );
+			Assert.AreEqual( 1, map.MemberMaps.Count );
 			Assert.AreEqual( 1, map.ReferenceMaps.Count );
-			Assert.AreEqual( 1, map.ReferenceMaps[0].Data.Mapping.PropertyMaps.Count );
+			Assert.AreEqual( 1, map.ReferenceMaps[0].Data.Mapping.MemberMaps.Count );
 			Assert.AreEqual( 0, map.ReferenceMaps[0].Data.Mapping.ReferenceMaps.Count );
 		}
 
 		[TestMethod]
 		public void CircularDependencyWithMultiplePropertiesTest()
 		{
-			var config = new CsvConfiguration();
+			var config = new CsvHelper.Configuration.Configuration();
 			var map = config.AutoMap<A>();
-			Assert.AreEqual( 1, map.PropertyMaps.Count );
+			Assert.AreEqual( 1, map.MemberMaps.Count );
 			Assert.AreEqual( 3, map.ReferenceMaps.Count );
+		}
+
+		private class SelfCircularA
+		{
+			public SelfCircularB Circular { get; set; }
+		}
+
+		private class SelfCircularB
+		{
+			public SelfCircularB Self { get; set; }
+
+			public SelfCircularC C { get; set; }
+		}
+
+		private class SelfCircularC
+		{
+			public string Id { get; set; }
 		}
 
 		private class ACircular

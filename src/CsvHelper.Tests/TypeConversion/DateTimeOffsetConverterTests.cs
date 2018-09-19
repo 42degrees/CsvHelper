@@ -10,6 +10,7 @@ using System.Text;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace CsvHelper.Tests.TypeConversion
 {
@@ -20,7 +21,7 @@ namespace CsvHelper.Tests.TypeConversion
 		public void ConvertToStringTest()
 		{
 			var converter = new DateTimeOffsetConverter();
-			var propertyMapData = new CsvPropertyMapData( null )
+			var propertyMapData = new MemberMapData( null )
 			{
 				TypeConverter = converter,
 				TypeConverterOptions = { CultureInfo = CultureInfo.CurrentCulture }
@@ -41,8 +42,10 @@ namespace CsvHelper.Tests.TypeConversion
 		{
 			var converter = new DateTimeOffsetConverter();
 
-			var propertyMapData = new CsvPropertyMapData( null );
+			var propertyMapData = new MemberMapData( null );
 			propertyMapData.TypeConverterOptions.CultureInfo = CultureInfo.CurrentCulture;
+
+			var mockRow = new Mock<IReaderRow>();
 
 			var dateTime = DateTimeOffset.Now;
 
@@ -54,23 +57,24 @@ namespace CsvHelper.Tests.TypeConversion
 			// Invalid conversions.
 			try
 			{
-				converter.ConvertFromString( null, null, propertyMapData );
+				converter.ConvertFromString( null, mockRow.Object, propertyMapData );
 				Assert.Fail();
 			}
-			catch( CsvTypeConverterException )
+			catch( TypeConverterException )
 			{
 			}
 		}
 
-#if !PCL
 		[TestMethod]
 		public void ComponentModelCompatibilityTest()
 		{
 			var converter = new DateTimeOffsetConverter();
 			var cmConverter = new System.ComponentModel.DateTimeOffsetConverter();
 
-			var propertyMapData = new CsvPropertyMapData( null );
+			var propertyMapData = new MemberMapData( null );
 			propertyMapData.TypeConverterOptions.CultureInfo = CultureInfo.CurrentCulture;
+
+			var mockRow = new Mock<IReaderRow>();
 
 			try
 			{
@@ -81,10 +85,10 @@ namespace CsvHelper.Tests.TypeConversion
 
 			try
 			{
-				converter.ConvertFromString( null, null, propertyMapData );
+				converter.ConvertFromString( null, mockRow.Object, propertyMapData );
 				Assert.Fail();
 			}
-			catch( CsvTypeConverterException ) { }
+			catch( TypeConverterException ) { }
 
 			try
 			{
@@ -95,10 +99,9 @@ namespace CsvHelper.Tests.TypeConversion
 
 			try
 			{
-				converter.ConvertFromString( "blah", null, propertyMapData );
+				converter.ConvertFromString( "blah", mockRow.Object, propertyMapData );
 			}
 			catch( FormatException ) { }
 		}
-#endif
 	}
 }

@@ -13,19 +13,6 @@ namespace CsvHelper.Tests
 	public class CsvReaderConstructorTests
 	{
 		[TestMethod]
-		public void InvalidParameterTest()
-		{
-			try
-			{
-				new CsvReader( new TestParser() );
-				Assert.Fail();
-			}
-			catch( CsvConfigurationException )
-			{
-			}
-		}
-
-		[TestMethod]
 		public void EnsureInternalsAreSetupCorrectlyWhenPassingTextReaderTest()
 		{
 			using( var stream = new MemoryStream() )
@@ -41,7 +28,7 @@ namespace CsvHelper.Tests
 		{
 			using( var stream = new MemoryStream() )
 			using( var reader = new StreamReader( stream ) )
-			using( var csv = new CsvReader( reader, new CsvConfiguration() ) )
+			using( var csv = new CsvReader( reader, new CsvHelper.Configuration.Configuration() ) )
 			{
 				Assert.AreSame( csv.Configuration, csv.Parser.Configuration );
 			}
@@ -60,44 +47,6 @@ namespace CsvHelper.Tests
 					Assert.AreSame( csv.Configuration, csv.Parser.Configuration );
 					Assert.AreSame( parser, csv.Parser );
 				}
-			}
-		}
-
-		private class TestParser : ICsvParser
-		{
-			public void Dispose()
-			{
-				throw new NotImplementedException();
-			}
-
-			public TextReader TextReader { get; }
-
-			public ICsvParserConfiguration Configuration { get; private set; }
-
-			public int FieldCount
-			{
-				get { throw new NotImplementedException(); }
-			}
-
-			public int RawRow { get; private set; }
-
-			public string RawRecord { get; private set; }
-
-			public string[] Read()
-			{
-				throw new NotImplementedException();
-			}
-
-			public long CharPosition
-			{
-				get { throw new NotImplementedException(); }
-			}
-
-			public long BytePosition { get; private set; }
-
-			public int Row
-			{
-				get { throw new NotImplementedException(); }
 			}
 		}
 	}

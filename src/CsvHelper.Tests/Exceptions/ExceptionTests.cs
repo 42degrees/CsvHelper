@@ -29,10 +29,11 @@ namespace CsvHelper.Tests.Exceptions
 
 				try
 				{
+					csv.Configuration.HeaderValidated = null;
 					var list = csv.GetRecords<NoDefaultConstructor>().ToList();
 					Assert.Fail();
 				}
-				catch( CsvReaderException )
+				catch( ReaderException )
 				{
 				}
 			}

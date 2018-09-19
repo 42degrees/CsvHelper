@@ -41,9 +41,9 @@ namespace CsvHelper.Tests.Mappings
 			public string Name { get; set; }
 		}
 
-		private sealed class TestMap : CsvClassMap<Test>
+		private sealed class TestMap : ClassMap<Test>
 		{
-			private TestMap()
+			private TestMap( string test )
 			{
 				Map( m => m.Id );
 				Map( m => m.Name );

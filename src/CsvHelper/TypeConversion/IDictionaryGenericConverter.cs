@@ -19,26 +19,26 @@ namespace CsvHelper.TypeConversion
 		/// Converts the string to an object.
 		/// </summary>
 		/// <param name="text">The string to convert to an object.</param>
-		/// <param name="row">The <see cref="ICsvReaderRow"/> for the current record.</param>
-		/// <param name="propertyMapData">The <see cref="CsvPropertyMapData"/> for the property/field being created.</param>
+		/// <param name="row">The <see cref="IReaderRow"/> for the current record.</param>
+		/// <param name="memberMapData">The <see cref="MemberMapData"/> for the member being created.</param>
 		/// <returns>The object created from the string.</returns>
-		public override object ConvertFromString( string text, ICsvReaderRow row, CsvPropertyMapData propertyMapData )
+		public override object ConvertFromString( string text, IReaderRow row, MemberMapData memberMapData )
 		{
-			var keyType = propertyMapData.Member.MemberType().GetGenericArguments()[0];
-			var valueType = propertyMapData.Member.MemberType().GetGenericArguments()[1];
+			var keyType = memberMapData.Member.MemberType().GetGenericArguments()[0];
+			var valueType = memberMapData.Member.MemberType().GetGenericArguments()[1];
 			var dictionaryType = typeof( Dictionary<,> );
 			dictionaryType = dictionaryType.MakeGenericType( keyType, valueType );
 			var dictionary = (IDictionary)ReflectionHelper.CreateInstance( dictionaryType );
 
-			var indexEnd = propertyMapData.IndexEnd < propertyMapData.Index
-				? row.CurrentRecord.Length - 1
-				: propertyMapData.IndexEnd;
+			var indexEnd = memberMapData.IndexEnd < memberMapData.Index
+				? row.Context.Record.Length - 1
+				: memberMapData.IndexEnd;
 
-			for( var i = propertyMapData.Index; i <= indexEnd; i++ )
+			for( var i = memberMapData.Index; i <= indexEnd; i++ )
 			{
 				var field = row.GetField( valueType, i );
 
-				dictionary.Add( row.FieldHeaders[i], field );
+				dictionary.Add( row.Context.HeaderRecord[i], field );
 			}
 
 			return dictionary;

@@ -18,7 +18,7 @@ namespace CsvHelper.Tests
 		public void Test()
 		{
 			var map = new AMap<A>();
-			Assert.AreEqual( 2, map.PropertyMaps.Count );
+			Assert.AreEqual( 2, map.MemberMaps.Count );
 		}
 
 		private interface IA
@@ -33,7 +33,7 @@ namespace CsvHelper.Tests
 			public int Name { get; set; }
 		}
 
-		private sealed class AMap<T> : CsvClassMap<T> where T : IA
+		private sealed class AMap<T> : ClassMap<T> where T : IA
 		{
 			public AMap()
 			{

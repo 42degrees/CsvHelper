@@ -7,6 +7,7 @@ using System.Globalization;
 using CsvHelper.Configuration;
 using CsvHelper.TypeConversion;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
+using Moq;
 
 namespace CsvHelper.Tests.TypeConversion
 {
@@ -18,7 +19,7 @@ namespace CsvHelper.Tests.TypeConversion
 		{
 			var converter = new BooleanConverter();
 
-			var propertyMapData = new CsvPropertyMapData( null )
+			var propertyMapData = new MemberMapData( null )
 			{
 				TypeConverter = converter,
 				TypeConverterOptions = { CultureInfo = CultureInfo.CurrentCulture }
@@ -37,40 +38,30 @@ namespace CsvHelper.Tests.TypeConversion
 		{
 			var converter = new BooleanConverter();
 
-			var propertyMapData = new CsvPropertyMapData( null );
+			var propertyMapData = new MemberMapData( null );
 			propertyMapData.TypeConverterOptions.CultureInfo = CultureInfo.CurrentCulture;
+
+			var mockRow = new Mock<IReaderRow>();
 
 			Assert.IsTrue( (bool)converter.ConvertFromString( "true", null, propertyMapData ) );
 			Assert.IsTrue( (bool)converter.ConvertFromString( "True", null, propertyMapData ) );
 			Assert.IsTrue( (bool)converter.ConvertFromString( "TRUE", null, propertyMapData ) );
 			Assert.IsTrue( (bool)converter.ConvertFromString( "1", null, propertyMapData ) );
-			Assert.IsTrue( (bool)converter.ConvertFromString( "yes", null, propertyMapData ) );
-			Assert.IsTrue( (bool)converter.ConvertFromString( "YES", null, propertyMapData ) );
-			Assert.IsTrue( (bool)converter.ConvertFromString( "y", null, propertyMapData ) );
-			Assert.IsTrue( (bool)converter.ConvertFromString( "Y", null, propertyMapData ) );
 			Assert.IsTrue( (bool)converter.ConvertFromString( " true ", null, propertyMapData ) );
-			Assert.IsTrue( (bool)converter.ConvertFromString( " yes ", null, propertyMapData ) );
-			Assert.IsTrue( (bool)converter.ConvertFromString( " y ", null, propertyMapData ) );
 
 			Assert.IsFalse( (bool)converter.ConvertFromString( "false", null, propertyMapData ) );
 			Assert.IsFalse( (bool)converter.ConvertFromString( "False", null, propertyMapData ) );
 			Assert.IsFalse( (bool)converter.ConvertFromString( "FALSE", null, propertyMapData ) );
 			Assert.IsFalse( (bool)converter.ConvertFromString( "0", null, propertyMapData ) );
-			Assert.IsFalse( (bool)converter.ConvertFromString( "no", null, propertyMapData ) );
-			Assert.IsFalse( (bool)converter.ConvertFromString( "NO", null, propertyMapData ) );
-			Assert.IsFalse( (bool)converter.ConvertFromString( "n", null, propertyMapData ) );
-			Assert.IsFalse( (bool)converter.ConvertFromString( "N", null, propertyMapData ) );
 			Assert.IsFalse( (bool)converter.ConvertFromString( " false ", null, propertyMapData ) );
 			Assert.IsFalse( (bool)converter.ConvertFromString( " 0 ", null, propertyMapData ) );
-			Assert.IsFalse( (bool)converter.ConvertFromString( " no ", null, propertyMapData ) );
-			Assert.IsFalse( (bool)converter.ConvertFromString( " n ", null, propertyMapData ) );
 
 			try
 			{
-				converter.ConvertFromString( null, null, propertyMapData );
+				converter.ConvertFromString( null, mockRow.Object, propertyMapData );
 				Assert.Fail();
 			}
-			catch( CsvTypeConverterException )
+			catch( TypeConverterException )
 			{
 			}
 		}
